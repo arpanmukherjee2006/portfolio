@@ -1136,6 +1136,11 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // Function to create futuristic cursor effects
 function setupFuturisticCursor() {
+    // Skip cursor effects on mobile devices - they don't make sense with touch
+    if (window.innerWidth <= 768 || 'ontouchstart' in window) {
+        return;
+    }
+    
     const cursorDot = document.createElement('div');
     const cursorRing = document.createElement('div');
     
@@ -1314,11 +1319,32 @@ function setupFuturisticCursor() {
         cursorDot.style.transform = 'translate(-50%, -50%) scale(1)';
         cursorRing.style.transform = 'translate(-50%, -50%) scale(1)';
     });
+    
+    // Handle resize - remove cursor effects on mobile
+    window.addEventListener('resize', function() {
+        if (window.innerWidth <= 768) {
+            // Remove cursor elements if window is resized to mobile
+            if (document.body.contains(cursorDot)) {
+                cursorDot.remove();
+            }
+            if (document.body.contains(cursorRing)) {
+                cursorRing.remove();
+            }
+        } else if (!document.body.contains(cursorDot)) {
+            // Re-initialize cursor if resized to desktop
+            setupFuturisticCursor();
+        }
+    });
 }
 
 // Function to create 3D card effect
 function setup3DCardEffect() {
     const cards = document.querySelectorAll('.profile-card, .project-card, .education-item');
+    
+    // Skip 3D effects on mobile devices
+    if (window.innerWidth <= 768) {
+        return;
+    }
     
     cards.forEach(card => {
         card.addEventListener('mousemove', e => {
@@ -1370,6 +1396,26 @@ function setup3DCardEffect() {
         parent.appendChild(shine);
         return shine;
     }
+    
+    // Add resize listener to disable/enable effect based on screen width
+    window.addEventListener('resize', function() {
+        if (window.innerWidth <= 768) {
+            // Disable 3D effects
+            cards.forEach(card => {
+                card.style.transform = '';
+                card.style.transition = '';
+                const shine = card.querySelector('.card-shine');
+                if (shine) shine.remove();
+                
+                // Remove event listeners (clone and replace)
+                const newCard = card.cloneNode(true);
+                card.parentNode.replaceChild(newCard, card);
+            });
+        } else {
+            // Re-initialize 3D effects
+            setup3DCardEffect();
+        }
+    });
 }
 
 // Create cyberpunk tech lines effect
@@ -1534,6 +1580,23 @@ function enhanceParticles() {
     // Get existing particles
     const particles = document.querySelectorAll('.particle');
     
+    // Reduce particle effects on mobile for better performance
+    const isMobile = window.innerWidth <= 768;
+    if (isMobile) {
+        // Keep only a few particles for mobile
+        particles.forEach((particle, index) => {
+            if (index > 10) { // Keep only 10 particles on mobile
+                particle.remove();
+            } else {
+                // Simplify particle effects on mobile
+                particle.style.opacity = '0.2';
+                particle.style.transition = 'none';
+                particle.style.animation = 'move 20s linear infinite';
+            }
+        });
+        return; // Exit early on mobile
+    }
+    
     particles.forEach(particle => {
         // Add data-state attribute for tracking
         particle.setAttribute('data-state', 'idle');
@@ -1544,6 +1607,9 @@ function enhanceParticles() {
     
     // Create particle attraction to cursor
     document.addEventListener('mousemove', e => {
+        // Skip on mobile
+        if (window.innerWidth <= 768) return;
+        
         const mouseX = e.clientX;
         const mouseY = e.clientY;
         
@@ -1590,8 +1656,11 @@ function enhanceParticles() {
         });
     });
     
-    // Particle explosion on click
+    // Particle explosion on click (desktop only)
     document.addEventListener('click', e => {
+        // Skip on mobile
+        if (window.innerWidth <= 768) return;
+        
         // Create explosion particles
         for (let i = 0; i < 10; i++) {
             const particle = document.createElement('div');
@@ -1637,6 +1706,30 @@ function enhanceParticles() {
             animation.onfinish = () => {
                 particle.remove();
             };
+        }
+    });
+    
+    // Add resize listener to adjust for screen size changes
+    window.addEventListener('resize', function() {
+        const isMobile = window.innerWidth <= 768;
+        if (isMobile) {
+            // Simplify particles on mobile
+            particles.forEach((particle, index) => {
+                if (index > 10) {
+                    particle.style.display = 'none';
+                } else {
+                    particle.style.opacity = '0.2';
+                    particle.style.transform = 'none';
+                    particle.style.transition = 'none';
+                    particle.style.boxShadow = 'none';
+                }
+            });
+        } else {
+            // Restore particles on desktop
+            particles.forEach(particle => {
+                particle.style.display = '';
+                particle.style.opacity = particle.getAttribute('data-original-opacity') || '0.3';
+            });
         }
     });
 }

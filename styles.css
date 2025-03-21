@@ -1606,4 +1606,23 @@ body, a, button, .project-card, .skill-item, .social-icon, .education-item, .com
 .cursor-ring {
     backdrop-filter: blur(2px);
     z-index: 9999;
+}
+
+/* Mobile responsiveness - disable card animations */
+@media screen and (max-width: 768px) {
+    .profile-card, .project-card, .education-item {
+        transform: none !important;
+        transition: none !important;
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2) !important;
+    }
+    
+    .card-shine {
+        display: none !important;
+    }
+    
+    /* Fallback hover state for mobile */
+    .project-card:hover, .education-item:hover, .profile-card:hover {
+        transform: translateY(-5px) !important;
+        transition: transform 0.3s ease !important;
+    }
 } 
